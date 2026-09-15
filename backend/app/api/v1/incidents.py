@@ -1,9 +1,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-from backend.app.repositories.in_memory_incident_repository import (
-    InMemoryIncidentRepository,
+from backend.app.database.connection import get_db
+from backend.app.repositories.sqlalchemy_incident_repository import (
+    SQLAlchemyIncidentRepository,
 )
 from backend.app.schemas.incident import (
     IncidentCreate,
@@ -18,13 +20,17 @@ router = APIRouter(
 )
 
 
-repository = InMemoryIncidentRepository()
-
-
-def get_incident_service() -> IncidentService:
+def get_incident_service(
+    db: Session = Depends(get_db),
+) -> IncidentService:
     """
     Dependency provider for the IncidentService.
+
+    Creates an IncidentService backed by the SQLAlchemy repository
+    for the current database session.
     """
+    repository = SQLAlchemyIncidentRepository(db)
+
     return IncidentService(repository)
 
 
