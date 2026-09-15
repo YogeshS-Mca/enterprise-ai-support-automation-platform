@@ -1,6 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from backend.app.api.v1.incidents import router as incidents_router
+from backend.app.database.connection import Base, engine
+from backend.app.models.incident import Incident
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Initialize database tables when the application starts.
+    """
+    Base.metadata.create_all(bind=engine)
+
+    yield
 
 
 app = FastAPI(
@@ -11,6 +25,7 @@ app = FastAPI(
         "and prepares incidents for automated diagnosis and remediation."
     ),
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
